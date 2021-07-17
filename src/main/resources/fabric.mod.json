@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "fdemoji",
   "version": "${version}",
 
-  "name": "Example Mod",
+  "name": "Fabric Discord Emojis",
   "description": "This is an example description! Tell everyone what your mod is about!",
   "authors": [
     "Me!"
@@ -19,7 +19,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleMod"
+      "mod.omoflop.fdemoji.FDEmoji"
     ]
   },
   "mixins": [
