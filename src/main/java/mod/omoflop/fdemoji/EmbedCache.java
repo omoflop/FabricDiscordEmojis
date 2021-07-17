@@ -7,10 +7,7 @@ import net.minecraft.client.texture.ResourceTexture;
 import net.minecraft.util.Identifier;
 import org.apache.commons.io.IOUtils;
 import org.lwjgl.system.MemoryUtil;
-import org.w3c.dom.Text;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -19,10 +16,10 @@ import java.util.HashMap;
 
 public class EmbedCache {
 
-    private static HashMap<String, EmbedTexture> imageCache = new HashMap<>();
+    private static final HashMap<String, EmbedTexture> IMAGE_CACHE = new HashMap<>();
 
     public static void clearCache() {
-        imageCache.clear();
+        IMAGE_CACHE.clear();
     }
 
     public static class EmbedTexture extends ResourceTexture {
@@ -42,6 +39,7 @@ public class EmbedCache {
                 stream.close();
                 uploadUsingData();
             } catch (IOException e) {
+                data = null;
                 e.printStackTrace();
             }
         }
@@ -77,7 +75,7 @@ public class EmbedCache {
     }
 
     public static EmbedTexture getOrLoadImage(String imageURL) {
-       if (!imageCache.containsKey(imageURL)) {
+       if (!IMAGE_CACHE.containsKey(imageURL)) {
            Identifier texture_id = new Identifier("fdemoji", ""+imageURL.hashCode());
 
            EmbedTexture texture = new EmbedTexture();
@@ -85,11 +83,11 @@ public class EmbedCache {
            FDEmoji.getTextureManager().registerTexture(texture.id, texture);
 
            texture.loadFromURL(imageURL);
-           imageCache.put(imageURL, texture);
+           IMAGE_CACHE.put(imageURL, texture);
            return texture;
        }
 
-       return imageCache.get(imageURL);
+       return IMAGE_CACHE.get(imageURL);
     }
 
 }
