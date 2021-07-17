@@ -4,17 +4,18 @@
   "version": "${version}",
 
   "name": "Fabric Discord Emojis",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "description": "Shows Images in the chat",
   "authors": [
-    "Me!"
+    "omoflop",
+    "Francy-Chan"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://github.com/omoflop/FabricDiscordEmojis",
+    "sources": "https://github.com/omoflop/FabricDiscordEmojis"
   },
 
   "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "icon": "assets/fdemoji/icon.png",
 
   "environment": "*",
   "entrypoints": {
@@ -23,7 +24,7 @@
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "fdemoji.mixins.json"
   ],
 
   "depends": {

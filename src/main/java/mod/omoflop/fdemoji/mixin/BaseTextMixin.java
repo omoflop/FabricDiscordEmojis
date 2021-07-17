@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(BaseText.class)
 public class BaseTextMixin implements BaseTextAccessor {
-    private String embed$messageURL = "";
+    private String embed$messageURL = null;
 
     @Override
     public void setEmbedURL(String url) {
