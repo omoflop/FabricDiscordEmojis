@@ -8,6 +8,9 @@ import net.minecraft.util.Identifier;
 import org.apache.commons.io.IOUtils;
 import org.lwjgl.system.MemoryUtil;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -17,31 +20,42 @@ import java.util.HashMap;
 public class EmbedCache {
 
     private static final HashMap<String, EmbedTexture> IMAGE_CACHE = new HashMap<>();
-
     public static void clearCache() {
         IMAGE_CACHE.clear();
     }
+
 
     public static class EmbedTexture extends ResourceTexture {
 
         public byte[] data;
         public Identifier id;
         public boolean isDone = false;
+        public double ratio;
 
         public EmbedTexture() {
             super(new Identifier("minecraft:textures/entity/steve.png"));
         }
 
         public void loadFromURL(String url) {
-            try {
-                InputStream stream = new URL(url).openStream();
-                data = IOUtils.toByteArray(stream);
-                stream.close();
-                uploadUsingData();
-            } catch (IOException e) {
-                data = null;
-                e.printStackTrace();
-            }
+            Thread loadThread = new ImageLoadThread(this, url) {
+                public void run() {
+                    try {
+                        InputStream stream = new URL(url).openStream();
+                        self.data = IOUtils.toByteArray(stream);
+                        BufferedImage buf = ImageIO.read(new ByteArrayInputStream(data));
+                        int w = buf.getWidth();
+                        int h = buf.getHeight();
+                        self.ratio = (double)w/h;
+
+                        stream.close();
+                        uploadUsingData();
+                    } catch (IOException e) {
+                        data = null;
+                        e.printStackTrace();
+                    }
+                }
+            };
+            loadThread.start();
         }
 
         public void registerTexture(){
@@ -82,8 +96,8 @@ public class EmbedCache {
            texture.id = texture_id;
            FDEmoji.getTextureManager().registerTexture(texture.id, texture);
 
-           texture.loadFromURL(imageURL);
            IMAGE_CACHE.put(imageURL, texture);
+           texture.loadFromURL(imageURL);
            return texture;
        }
 

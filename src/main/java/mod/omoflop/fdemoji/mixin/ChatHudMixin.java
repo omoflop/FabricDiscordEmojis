@@ -21,7 +21,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.*;
 
-import static net.minecraft.client.gui.DrawableHelper.drawTexture;
+import static mod.omoflop.fdemoji.ModConfig.IMAGE_SIZE;
+import static net.minecraft.client.gui.DrawableHelper.*;
 
 @Mixin(ChatHud.class)
 public abstract class ChatHudMixin {
@@ -74,19 +75,20 @@ public abstract class ChatHudMixin {
 			//draw stuff
 			double s = (double) (-extra + 2) * messageHeight;
 
-			int imageWidth = 32;
-			int imageHeight = 32;
-
 			int x = tickDelta - this.messages.get(m).getCreationTick();
 			if (fade || x < 200) {
 				double opacity = fade ? 1.0f : getMessageOpacityMultiplier(x);
 
 				EmbedCache.EmbedTexture texture = EmbedCache.getOrLoadImage(embedURL);
 				RenderSystem.setShaderTexture(0, texture.getGlId());
+				int width = (int) Math.round(texture.ratio*IMAGE_SIZE);
+				int height = IMAGE_SIZE;
+
+				RenderSystem.setShaderColor(1, 1, 1, (float) opacity);
 
 				RenderSystem.enableBlend();
-				RenderSystem.setShaderColor(1, 1, 1, (float) opacity);
-				drawTexture(matrices, 4, (int) (s + h + messageHeight), 0, 0, 0, imageWidth, imageHeight, imageHeight, imageWidth);
+				drawTexture(matrices, 4, (int) (s + h + messageHeight), 0, 0, 0, width, height, height, width);
+
 				RenderSystem.disableBlend();
 			}
 		}
@@ -103,7 +105,7 @@ public abstract class ChatHudMixin {
 			boolean haveExtraText = i2 != -1;
 			string = string.substring(i1, haveExtraText ? i2 : string.length());
 
-			if (EmbedCache.getOrLoadImage(string).data != null) {
+			if (EmbedCache.getOrLoadImage(string) != null) {
 				BaseTextAccessor text = (BaseTextAccessor) new LiteralText((message.getString() + " ").replace(string, haveExtraText ? "\n\n\n\n\n" : "\n\n\n\n"));
 				text.setEmbedURL(string);
 
