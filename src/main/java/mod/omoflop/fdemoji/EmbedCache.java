@@ -2,8 +2,11 @@ package mod.omoflop.fdemoji;
 
 import com.mojang.blaze3d.platform.TextureUtil;
 import com.mojang.blaze3d.systems.RenderSystem;
+import mod.omoflop.fdemoji.accessor.BaseTextAccessor;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.ResourceTexture;
+import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.apache.commons.io.IOUtils;
 import org.lwjgl.system.MemoryUtil;
@@ -86,6 +89,22 @@ public class EmbedCache {
             image.upload(0, 0, 0, true);
             this.isDone = true;
         }
+    }
+
+    public static String parseURL(String url) {
+        if (url == null) return null;
+
+        for(String s : url.split(" ")) {
+            if (s.startsWith("http")) {
+                int i1 = s.indexOf("http");
+                int i2 = s.indexOf(" ", i1);
+
+                boolean haveExtraText = i2 != -1;
+                return s.substring(i1, haveExtraText ? i2 : s.length());
+            }
+        }
+
+        return null;
     }
 
     public static EmbedTexture getOrLoadImage(String imageURL) {

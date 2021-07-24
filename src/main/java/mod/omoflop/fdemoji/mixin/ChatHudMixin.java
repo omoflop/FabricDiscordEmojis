@@ -1,5 +1,6 @@
 package mod.omoflop.fdemoji.mixin;
 
+import com.google.common.base.Splitter;
 import com.mojang.blaze3d.systems.RenderSystem;
 import mod.omoflop.fdemoji.EmbedCache;
 import mod.omoflop.fdemoji.accessor.BaseTextAccessor;
@@ -41,10 +42,11 @@ public abstract class ChatHudMixin {
 	@Shadow private static double getMessageOpacityMultiplier(int age) {
 		return 0;
 	}
+
 	/* TODO:
-	 *  * Image stretching
 	 *  * Fix style not being preserved on messages
 	 *  * Clear image cache when not visible anymore
+	 *  * Fix images getting cropped too aggressively
 	 */
 
 	@Inject(at = @At(value = "TAIL"), method = "render")
@@ -56,38 +58,49 @@ public abstract class ChatHudMixin {
 
 		boolean fade = this.isChatFocused();
 
-		double messageHeight = 9.0D * (this.client.options.chatLineSpacing + 1.0D);
 		double h = -8.0D * (this.client.options.chatLineSpacing + 1.0D) + 4.0D * this.client.options.chatLineSpacing;
+		double messageHeight = 9.0D * (this.client.options.chatLineSpacing + 1.0D);
 
 		//render images
-		for(int m = 0, extra = 0; m + this.scrolledLines < this.messages.size() && m < this.getVisibleLineCount(); ++m) {
+		for (int m = 0, extra = 0; m < this.messages.size() && extra - this.scrolledLines < this.getVisibleLineCount(); ++m) {
+
 			Text line = this.messages.get(m).getText();
 			if (line == null) continue;
 
 			//break lines
-			List<OrderedText> lineList = ChatMessages.breakRenderedChatMessageLines(line, MathHelper.floor((double)this.getWidth() / this.getChatScale()), this.client.textRenderer);
+			List<OrderedText> lineList = ChatMessages.breakRenderedChatMessageLines(line, MathHelper.floor((double) this.getWidth() / this.getChatScale()), this.client.textRenderer);
 			extra += lineList.size();
 
-			//skip if it doesnt matter
+			double s = (double) (-extra + 2 + this.scrolledLines) * messageHeight;
+			int y = (int) (s + h + messageHeight);
+
+			if (y > 0) continue;
+
+			//skip if it doesn't matter
 			String embedURL = ((BaseTextAccessor) line).getEmbedURL();
 			if (embedURL == null) continue;
 
 			//draw stuff
-			double s = (double) (-extra + 2) * messageHeight;
 
 			int x = tickDelta - this.messages.get(m).getCreationTick();
 			if (fade || x < 200) {
+
 				double opacity = fade ? 1.0f : getMessageOpacityMultiplier(x);
 
 				EmbedCache.EmbedTexture texture = EmbedCache.getOrLoadImage(embedURL);
 				RenderSystem.setShaderTexture(0, texture.getGlId());
-				int width = (int) Math.round(texture.ratio*IMAGE_SIZE);
+				int width = (int) Math.round(texture.ratio * IMAGE_SIZE);
 				int height = IMAGE_SIZE;
 
 				RenderSystem.setShaderColor(1, 1, 1, (float) opacity);
 
+				int cropDown = 0;
+				if (y + height - messageHeight > 0) {
+					cropDown = y + height;
+				}
+
 				RenderSystem.enableBlend();
-				drawTexture(matrices, 4, (int) (s + h + messageHeight), 0, 0, 0, width, height, height, width);
+				drawTexture(matrices, 4, y, 0, 0, 0, width, height-cropDown, height, width);
 
 				RenderSystem.disableBlend();
 			}
@@ -98,7 +111,7 @@ public abstract class ChatHudMixin {
 	public void addMessage(Text message, CallbackInfo ci) {
 		String string = message.getString();
 
-		if (string.contains("http")) {
+		if (string.contains("http") && (string.endsWith("png") || string.endsWith("jpg") || string.endsWith("jpeg") || string.endsWith("gif"))) {
 			int i1 = string.indexOf("http");
 			int i2 = string.indexOf(" ", i1);
 
